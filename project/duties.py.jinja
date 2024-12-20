@@ -14,8 +14,6 @@ from duty import duty, tools
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from duty.context import Context
-
 
 PY_SRC_PATHS = (Path(_) for _ in ("src", "tests", "duties.py", "scripts"))
 PY_SRC_LIST = tuple(str(_) for _ in PY_SRC_PATHS)
@@ -31,18 +29,6 @@ def pyprefix(title: str) -> str:  # noqa: D103
         prefix = f"(python{sys.version_info.major}.{sys.version_info.minor})"
         return f"{prefix:14}{title}"
     return title
-
-
-@contextmanager
-def material_insiders() -> Iterator[bool]:  # noqa: D103
-    if "+insiders" in pkgversion("mkdocs-material"):
-        os.environ["MATERIAL_INSIDERS"] = "true"
-        try:
-            yield True
-        finally:
-            os.environ.pop("MATERIAL_INSIDERS")
-    else:
-        yield False
 
 
 @duty
@@ -74,11 +60,10 @@ def check_docs(ctx: Context) -> None:
     """Check if the documentation builds correctly."""
     Path("htmlcov").mkdir(parents=True, exist_ok=True)
     Path("htmlcov/index.html").touch(exist_ok=True)
-    with material_insiders():
-        ctx.run(
-            tools.mkdocs.build(strict=True, verbose=True),
-            title=pyprefix("Building documentation"),
-        )
+    ctx.run(
+        tools.mkdocs.build(strict=True, verbose=True),
+        title=pyprefix("Building documentation"),
+    )
 
 
 @duty
@@ -108,54 +93,18 @@ def docs(ctx: Context, *cli_args: str, host: str = "127.0.0.1", port: int = 8000
         host: The host to serve the docs from.
         port: The port to serve the docs on.
     """
-    with material_insiders():
-        ctx.run(
-            tools.mkdocs.serve(dev_addr=f"{host}:{port}").add_args(*cli_args),
-            title="Serving documentation",
-            capture=False,
-        )
+    ctx.run(
+        tools.mkdocs.serve(dev_addr=f"{host}:{port}").add_args(*cli_args),
+        title="Serving documentation",
+        capture=False,
+    )
 
 
 @duty
-def docs_deploy(ctx: Context{% if insiders %}, *, force: bool = False{% endif %}) -> None:
-    """Deploy the documentation to GitHub pages.
-    {%- if insiders %}
-
-    Parameters:
-        force: Whether to force deployment, even from non-Insiders version.
-    {% endif -%}
-    """
+def docs_deploy(ctx: Context) -> None:
+    """Deploy the documentation to GitHub pages."""
     os.environ["DEPLOY"] = "true"
-    with material_insiders() as insiders:
-        if not insiders:
-            ctx.run(lambda: False, title="Not deploying docs without Material for MkDocs Insiders!")
-        {%- if insiders %}
-        origin = ctx.run("git config --get remote.origin.url", silent=True, allow_overrides=False)
-        if "{{ author_username }}-insiders/{{ insiders_repository_name }}" in origin:
-            ctx.run(
-                "git remote add upstream git@github.com:{{ repository_namespace }}/{{ repository_name }}",
-                silent=True,
-                nofail=True,
-                allow_overrides=False,
-            )
-            ctx.run(
-                tools.mkdocs.gh_deploy(remote_name="upstream", force=True),
-                title="Deploying documentation",
-            )
-        elif force:
-            ctx.run(
-                tools.mkdocs.gh_deploy(force=True),
-                title="Deploying documentation",
-            )
-        else:
-            ctx.run(
-                lambda: False,
-                title="Not deploying docs from public repository (do that from insiders instead!)",
-                nofail=True,
-            )
-        {%- else %}
-        ctx.run(tools.mkdocs.gh_deploy(), title="Deploying documentation")
-        {%- endif %}
+    ctx.run(tools.mkdocs.gh_deploy(), title="Deploying documentation")
 
 
 @duty
@@ -198,14 +147,6 @@ def release(ctx: Context, version: str = "") -> None:
     Parameters:
         version: The new version number to use.
     """
-    {%- if insiders %}
-    origin = ctx.run("git config --get remote.origin.url", silent=True)
-    if "{{ author_username }}-insiders/{{ repository_name }}" in origin:
-        ctx.run(
-            lambda: False,
-            title="Not releasing from insiders repository (do that from public repo instead!)",
-        )
-    {%- endif %}
     if not (version := (version or input("> Version to release: ")).strip()):
         ctx.run("false", title="A version must be provided")
     ctx.run("git add pyproject.toml CHANGELOG.md", title="Staging files", pty=PTY)

@@ -1,9 +1,13 @@
 site_name: "{{ project_name }}"
 site_description: "{{ project_description }}"
+{% if repository_provider == "github.com" -%}
 site_url: "https://{{ repository_namespace }}.{{ repository_provider.rsplit('.', 1)[0] }}.io/{{ repository_name }}"
+{% else -%}
+site_url: "https://in-stigler.htw-aalen.de/docs/{{ repository_namespace }}/{{ repository_name }}"
+{% endif -%}
 repo_url: "https://{{ repository_provider }}/{{ repository_namespace }}/{{ repository_name }}"
 repo_name: "{{ repository_namespace }}/{{ repository_name }}"
-site_dir: "{% if repository_provider == 'github.com' %}site{% endif %}"
+site_dir: "site"
 watch: [mkdocs.yml, README.md, CONTRIBUTING.md, CHANGELOG.md, src/{{ python_package_import_name }}]
 copyright: Copyright &copy; {{ copyright_date }} {{ copyright_holder }}
 edit_uri: edit/main/docs/
@@ -26,24 +30,12 @@ nav:
   - Contributing: contributing.md
   - Code of Conduct: code_of_conduct.md
   - Coverage report: coverage.md
-{%- if insiders %}
-- Insiders:
-  - insiders/index.md
-  - Getting started:
-    - Installation: insiders/installation.md
-    - Changelog: insiders/changelog.md
-{%- endif %}
-{%- if author_username == "pawamoy" %}
-- Author's website: https://{{ author_username }}.{{ repository_provider.rsplit('.', 1)[0] }}.io/
-{%- endif %}
 
 theme:
   name: material
   custom_dir: docs/.overrides
-  {%- if author_username == "pawamoy" %}
-  icon:
-    logo: material/currency-sign
-  {%- endif %}
+  # icon:
+  #   logo: material/currency-sign
   features:
   - announce.dismiss
   - content.action.edit
@@ -83,9 +75,6 @@ theme:
 extra_css:
 - css/material.css
 - css/mkdocstrings.css
-{%- if insiders %}
-- css/insiders.css
-{%- endif %}
 
 extra_javascript:
 - js/feedback.js
@@ -140,7 +129,7 @@ plugins:
           show_root_heading: true
           show_root_full_path: false
           show_signature_annotations: true
-          show_source: {{ "false" if insiders else "true" }}
+          show_source: true
           show_symbol_type_heading: true
           show_symbol_type_toc: true
           signature_crossrefs: true
@@ -156,18 +145,9 @@ plugins:
     plugins:
     - typeset
 
-extra:
   social:
-  - icon: fontawesome/brands/{{ repository_provider.rsplit(".", 1)[0] }}
+  - icon: {% if repository_provider == "github.com" %}"fontawesome/brands/github"{% else %}"fontawesome/brands/gitea"{% endif %}
     link: https://{{ repository_provider }}/{{ author_username }}
-  {%- if author_username == "pawamoy" %}
-  - icon: fontawesome/brands/mastodon
-    link: https://fosstodon.org/@{{ author_username }}
-  - icon: fontawesome/brands/twitter
-    link: https://twitter.com/{{ author_username }}
-  {%- endif %}
-  - icon: fontawesome/brands/gitter
-    link: https://gitter.im/{{ repository_name }}/community
   - icon: fontawesome/brands/python
     link: https://pypi.org/project/{{ python_package_distribution_name }}/
   analytics:

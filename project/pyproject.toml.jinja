@@ -98,16 +98,17 @@ classifiers = [
 dependencies = []
 
 [project.urls]
+{% if repository_provider == "github.com" -%}
 Homepage = "https://{{ repository_namespace }}.{{ repository_provider.rsplit('.', 1)[0] }}.io/{{ repository_name }}"
 Documentation = "https://{{ repository_namespace }}.{{ repository_provider.rsplit('.', 1)[0] }}.io/{{ repository_name }}"
 Changelog = "https://{{ repository_namespace }}.{{ repository_provider.rsplit('.', 1)[0] }}.io/{{ repository_name }}/changelog"
+{% else -%}
+Homepage = "https://in-stigler.htw-aalen.de/docs/{{ repository_namespace }}/{{ repository_name }}"
+Documentation = "https://in-stigler.htw-aalen.de/docs/{{ repository_namespace }}/{{ repository_name }}"
+Changelog = "https://in-stigler.htw-aalen.de/docs/{{ repository_namespace }}/{{ repository_name }}/changelog"
+{% endif -%}
 Repository = "https://{{ repository_provider }}/{{ repository_namespace }}/{{ repository_name }}"
 Issues = "https://{{ repository_provider }}/{{ repository_namespace }}/{{ repository_name }}/issues"
-Discussions = "https://{{ repository_provider }}/{{ repository_namespace }}/{{ repository_name }}/discussions"
-Gitter = "https://gitter.im/{% if repository_namespace != author_username %}{{ repository_namespace }}/{{ repository_name }}{% else %}{{ repository_name }}/community{% endif %}"
-{%- if repository_provider == "github.com" %}
-Funding = "https://{{ repository_provider }}/sponsors/{{ author_username }}"
-{%- endif %}
 
 {% if python_package_command_line_name -%}
 [project.scripts]
