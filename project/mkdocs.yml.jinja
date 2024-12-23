@@ -10,7 +10,6 @@ repo_name: "{{ repository_namespace }}/{{ repository_name }}"
 site_dir: "site"
 watch: [mkdocs.yml, README.md, CONTRIBUTING.md, CHANGELOG.md, src/{{ python_package_import_name }}]
 copyright: Copyright &copy; {{ copyright_date }} {{ copyright_holder }}
-edit_uri: edit/main/docs/
 
 validation:
   omitted_files: warn
@@ -38,7 +37,6 @@ theme:
   #   logo: material/currency-sign
   features:
   - announce.dismiss
-  - content.action.edit
   - content.action.view
   - content.code.annotate
   - content.code.copy
@@ -145,8 +143,9 @@ plugins:
     plugins:
     - typeset
 
+extra:
   social:
-  - icon: {% if repository_provider == "github.com" %}"fontawesome/brands/github"{% else %}"fontawesome/brands/gitea"{% endif %}
+  - icon: {% if repository_provider == "github.com" %}"fontawesome/brands/github"{% else %}"fontawesome/brands/git-alt"{% endif %}
     link: https://{{ repository_provider }}/{{ author_username }}
   - icon: fontawesome/brands/python
     link: https://pypi.org/project/{{ python_package_distribution_name }}/
