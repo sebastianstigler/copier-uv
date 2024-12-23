@@ -13,7 +13,6 @@ _jinja_extensions:
   - extensions.py:GitHubIDsforGiscusExtension
 _skip_if_exists:
   - CHANGELOG.md
-  - docs/insiders/changelog.md
 
 # PROMPT --------------------------------
 project_name:
@@ -147,3 +146,6 @@ python_package_command_line_name:
 #   help: Is this project already released publicly?
 #   default: false
 #   when: '{{ insiders }}'
+
+_tasks:
+  - "git init"
